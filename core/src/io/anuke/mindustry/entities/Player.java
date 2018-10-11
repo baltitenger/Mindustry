@@ -383,11 +383,11 @@ public class Player extends Unit implements BuilderTrait, CarryTrait, ShooterTra
     }
 
     public float snappedX(){
-        return snapCamera && isLocal ? (int) (x + 0.0001f) : x;
+        return snapCamera && isLocal ? (int) (x) : x;
     }
 
     public float snappedY(){
-        return snapCamera && isLocal ? (int) (y + 0.0001f) : y;
+        return snapCamera && isLocal ? (int) (y) : y;
     }
 
     public void drawName(){

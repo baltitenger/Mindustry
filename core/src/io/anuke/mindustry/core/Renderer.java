@@ -37,8 +37,7 @@ import io.anuke.ucore.util.Pooling;
 import io.anuke.ucore.util.Translator;
 
 import static io.anuke.mindustry.Vars.*;
-import static io.anuke.ucore.core.Core.batch;
-import static io.anuke.ucore.core.Core.camera;
+import static io.anuke.ucore.core.Core.*;
 
 public class Renderer extends RendererModule{
     public final Surface effectSurface;
@@ -143,34 +142,15 @@ public class Renderer extends RendererModule{
             Vector2 position = averagePosition();
 
             if(players[0].isDead()){
-                smoothCamera(position.x + 0.0001f, position.y + 0.0001f, 0.08f);
+                smoothCamera(position.x, position.y, 0.08f);
             }else if(!mobile){
-                setCamera(position.x + 0.0001f, position.y + 0.0001f);
+                smoothCamera(position.x, position.y, 0.07f);
             }
+            //setCamera(players[0].getClosestCore().x, players[0].getClosestCore().y);
             camera.position.x = Mathf.clamp(camera.position.x, -tilesize / 2f, world.width() * tilesize - tilesize / 2f);
             camera.position.y = Mathf.clamp(camera.position.y, -tilesize / 2f, world.height() * tilesize - tilesize / 2f);
 
-            float prex = camera.position.x, prey = camera.position.y;
-            updateShake(0.75f);
-
-            float deltax = camera.position.x - prex, deltay = camera.position.y - prey;
-            float lastx = camera.position.x, lasty = camera.position.y;
-
-            if(snapCamera){
-                camera.position.set((int) camera.position.x, (int) camera.position.y, 0);
-            }
-
-            if(Gdx.graphics.getHeight() / Core.cameraScale % 2 == 1){
-                camera.position.add(0, -0.5f, 0);
-            }
-
-            if(Gdx.graphics.getWidth() / Core.cameraScale % 2 == 1){
-                camera.position.add(-0.5f, 0, 0);
-            }
-
             draw();
-
-            camera.position.set(lastx - deltax, lasty - deltay, 0);
         }
 
         if(!ui.chatfrag.chatOpen()){
@@ -180,6 +160,24 @@ public class Renderer extends RendererModule{
 
     @Override
     public void draw(){
+        float prex = camera.position.x, prey = camera.position.y;
+        updateShake(0.75f);
+
+        float deltax = camera.position.x - prex, deltay = camera.position.y - prey;
+        float lastx = camera.position.x, lasty = camera.position.y;
+
+        if(true){
+            camera.position.set((int) camera.position.x, (int) camera.position.y, 0);
+        }
+
+        if(Gdx.graphics.getHeight() / Core.cameraScale % 2 == 1){
+            camera.position.add(0, -0.5f, 0);
+        }
+
+        if(Gdx.graphics.getWidth() / Core.cameraScale % 2 == 1){
+            camera.position.add(-0.5f, 0, 0);
+        }
+
         camera.update();
         if(Float.isNaN(Core.camera.position.x) || Float.isNaN(Core.camera.position.y)){
             Core.camera.position.x = players[0].x;
@@ -250,12 +248,24 @@ public class Renderer extends RendererModule{
         EntityDraw.drawWith(shieldGroup, shield -> true, shield -> ((ShieldEntity)shield).drawOver());
         Graphics.endShaders();
 
-        Graphics.flushSurface();
+        Graphics.surface();
 
-        batch.end();
+        Graphics.end();
+
+        camera.position.set(lastx - deltax, lasty - deltay, 0);
+        camera.update();
+
+        Graphics.setScreen();
+        batch.draw(pixelSurface.texture(),
+            -(camera.position.x % 1f) * cameraScale,
+            Gdx.graphics.getHeight() - (camera.position.y % 1f) * cameraScale,
+            Gdx.graphics.getWidth(),
+            -Gdx.graphics.getHeight());
+
+        Graphics.end();
 
         if(showFog){
-            fog.draw();
+        //    fog.draw();
         }
 
         Graphics.beginCam();
