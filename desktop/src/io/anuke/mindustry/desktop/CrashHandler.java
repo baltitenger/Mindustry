@@ -16,13 +16,15 @@ public class CrashHandler{
 
     public static void handle(Throwable e){
         if(e.getMessage() != null && (e.getMessage().contains("Couldn't create window") || e.getMessage().contains("OpenGL 2.0 or higher"))){
+            //graal currently does not support swing
+            /*
             try{
                 javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
             }catch(Throwable ignored){}
             javax.swing.JOptionPane.showMessageDialog(null, "Your graphics card does not support OpenGL 2.0!\n" +
                 "Try to update your graphics drivers.\n\n" +
                 "(If that doesn't work, your computer just doesn't support Mindustry.)",
-                "oh no", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                "oh no", javax.swing.JOptionPane.INFORMATION_MESSAGE);*/
         }
 
         e.printStackTrace();
