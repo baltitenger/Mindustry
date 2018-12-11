@@ -24,6 +24,15 @@ public class PowerGraph{
     private final ObjectSet<Tile> batteries = new ObjectSet<>();
     private final ObjectSet<Tile> all = new ObjectSet<>();
 
+    private float powerProduced = 0f;
+    private float powerNeeded = 0f;
+    private float totalAccumulator = 0f;
+    private float totalCapacity = 0f;
+    private float batteriesCharged = 0f;
+
+    private float powerUsed = 0f;
+    private float powerChanged = 0f;
+
     private long lastFrameUpdated;
     private final int graphID;
     private static int lastGraphID;
@@ -36,8 +45,13 @@ public class PowerGraph{
         return graphID;
     }
 
+    private boolean shouldSkip(){
+        return threads.getFrameID() == lastFrameUpdated || consumers.size == 0 && producers.size == 0 && batteries.size == 0;
+    }
+
     public float getPowerProduced(){
-        float powerProduced = 0f;
+        if(shouldSkip()) return powerProduced;
+        powerProduced = 0f;
         for(Tile producer : producers){
             powerProduced += producer.block().getPowerProduction(producer) * producer.entity.delta();
         }
@@ -45,7 +59,8 @@ public class PowerGraph{
     }
 
     public float getPowerNeeded(){
-        float powerNeeded = 0f;
+        if(shouldSkip()) return powerNeeded;
+        powerNeeded = 0f;
         for(Tile consumer : consumers){
             Consumers consumes = consumer.block().consumes;
             if(consumes.hasSubtypeOf(ConsumePower.class)){
@@ -59,7 +74,8 @@ public class PowerGraph{
     }
 
     public float getBatteryStored(){
-        float totalAccumulator = 0f;
+        if(shouldSkip()) return totalAccumulator;
+        totalAccumulator = 0f;
         for(Tile battery : batteries){
             Consumers consumes = battery.block().consumes;
             if(consumes.hasSubtypeOf(ConsumePower.class)){
@@ -70,7 +86,8 @@ public class PowerGraph{
     }
 
     public float getBatteryCapacity(){
-        float totalCapacity = 0f;
+        if(shouldSkip()) return totalCapacity;
+        totalCapacity = 0f;
         for(Tile battery : batteries){
             Consumers consumes = battery.block().consumes;
             if(consumes.hasSubtypeOf(ConsumePower.class)){
@@ -112,7 +129,7 @@ public class PowerGraph{
                 }
             }
         }
-        return Math.min(excess, capacity);
+        return batteriesCharged = Math.min(excess, capacity);
     }
 
     public void distributePower(float needed, float produced){
@@ -139,14 +156,11 @@ public class PowerGraph{
     }
 
     public void update(){
-        if(threads.getFrameID() == lastFrameUpdated || consumers.size == 0 && producers.size == 0 && batteries.size == 0){
-            return;
-        }
-
-        lastFrameUpdated = threads.getFrameID();
+        if(shouldSkip()) return;
 
         float powerNeeded = getPowerNeeded();
         float powerProduced = getPowerProduced();
+        powerChanged = powerProduced - powerNeeded;
 
         if(!MathUtils.isEqual(powerNeeded, powerProduced)){
             if(powerNeeded > powerProduced){
@@ -155,8 +169,11 @@ public class PowerGraph{
                 powerProduced -= chargeBatteries(powerProduced - powerNeeded);
             }
         }
+        powerUsed = Math.min(powerNeeded, powerProduced);
 
         distributePower(powerNeeded, powerProduced);
+
+        lastFrameUpdated = threads.getFrameID();
     }
 
     public void add(PowerGraph graph){
@@ -240,6 +257,18 @@ public class PowerGraph{
             }
         }
         return true;
+    }
+
+    public float getBatteriesCharged(){
+        return batteriesCharged;
+    }
+
+    public float getPowerUsed(){
+        return powerUsed;
+    }
+
+    public float getPowerChanged(){
+        return powerChanged;
     }
 
     @Override
