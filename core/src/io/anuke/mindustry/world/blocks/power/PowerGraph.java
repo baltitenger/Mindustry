@@ -11,6 +11,8 @@ import io.anuke.mindustry.world.consumers.ConsumePower;
 import io.anuke.mindustry.world.consumers.Consumers;
 import io.anuke.ucore.util.Mathf;
 
+import java.util.Locale;
+
 import static io.anuke.mindustry.Vars.threads;
 
 public class PowerGraph{
@@ -28,10 +30,53 @@ public class PowerGraph{
     private float powerNeeded = 0f;
     private float totalAccumulator = 0f;
     private float totalCapacity = 0f;
-    private float batteriesCharged = 0f;
+    private float batteryCharged = 0f;
 
     private float powerUsed = 0f;
     private float powerChanged = 0f;
+    
+    public final PowerInfo info = new PowerInfo(this);
+    public class PowerInfo{
+        public final PowerGraph graph;
+
+        private PowerInfo(PowerGraph graph){
+            this.graph = graph;
+        }
+
+        public float getPowerProduced(){
+            return graph.powerProduced;
+        }
+
+        public float getPowerNeeded(){
+            return graph.powerNeeded;
+        }
+
+        public float getBatteryStored(){
+            return graph.totalAccumulator;
+        }
+
+        public float getBatteryCapacity(){
+            return graph.totalCapacity;
+        }
+
+        public float getBatteryCharged(){
+            return graph.batteryCharged;
+        }
+
+        public float getPowerUsed(){
+            return graph.powerUsed;
+        }
+
+        public float getPowerChanged(){
+            return graph.powerChanged;
+        }
+
+        @Override
+        public String toString(){
+            return String.format(Locale.ROOT, "PowerInfo{powerProduced=%f, powerNeeded=%f, batteryStored=%f, batteryCapacity=%f, batteryCharged=%f, powerUsed=%f, powerChanged=%f}",
+                    getPowerProduced(), getPowerNeeded(), getBatteryStored(), getBatteryCapacity(), getBatteryCharged(), getPowerUsed(), getPowerChanged());
+        }
+    }
 
     private long lastFrameUpdated;
     private final int graphID;
@@ -129,7 +174,7 @@ public class PowerGraph{
                 }
             }
         }
-        return batteriesCharged = Math.min(excess, capacity);
+        return batteryCharged = Math.min(excess, capacity);
     }
 
     public void distributePower(float needed, float produced){
@@ -259,27 +304,9 @@ public class PowerGraph{
         return true;
     }
 
-    public float getBatteriesCharged(){
-        return batteriesCharged;
-    }
-
-    public float getPowerUsed(){
-        return powerUsed;
-    }
-
-    public float getPowerChanged(){
-        return powerChanged;
-    }
-
     @Override
     public String toString(){
-        return "PowerGraph{" +
-            "producers=" + producers +
-            ", consumers=" + consumers +
-            ", batteries=" + batteries +
-            ", all=" + all +
-            ", lastFrameUpdated=" + lastFrameUpdated +
-            ", graphID=" + graphID +
-            '}';
+        return String.format(Locale.ROOT, "PowerGraph{producers=%s, consumers=%s, batteries=%s, all=%s, info=%s, lastFrameUpdated=%d, graphID=%d]",
+                producers.toString(), consumers.toString(), batteries.toString(), all.toString(), info.toString(), lastFrameUpdated, graphID);
     }
 }
