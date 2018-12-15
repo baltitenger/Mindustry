@@ -90,12 +90,7 @@ public class PowerGraph{
         return graphID;
     }
 
-    private boolean shouldSkip(){
-        return threads.getFrameID() == lastFrameUpdated || consumers.size == 0 && producers.size == 0 && batteries.size == 0;
-    }
-
     public float getPowerProduced(){
-        if(shouldSkip()) return powerProduced;
         powerProduced = 0f;
         for(Tile producer : producers){
             powerProduced += producer.block().getPowerProduction(producer) * producer.entity.delta();
@@ -104,7 +99,6 @@ public class PowerGraph{
     }
 
     public float getPowerNeeded(){
-        if(shouldSkip()) return powerNeeded;
         powerNeeded = 0f;
         for(Tile consumer : consumers){
             Consumers consumes = consumer.block().consumes;
@@ -119,7 +113,6 @@ public class PowerGraph{
     }
 
     public float getBatteryStored(){
-        if(shouldSkip()) return totalAccumulator;
         totalAccumulator = 0f;
         for(Tile battery : batteries){
             Consumers consumes = battery.block().consumes;
@@ -131,7 +124,6 @@ public class PowerGraph{
     }
 
     public float getBatteryCapacity(){
-        if(shouldSkip()) return totalCapacity;
         totalCapacity = 0f;
         for(Tile battery : batteries){
             Consumers consumes = battery.block().consumes;
@@ -201,7 +193,7 @@ public class PowerGraph{
     }
 
     public void update(){
-        if(shouldSkip()) return;
+        if(threads.getFrameID() == lastFrameUpdated || consumers.size == 0 && producers.size == 0 && batteries.size == 0) return;
 
         float powerNeeded = getPowerNeeded();
         float powerProduced = getPowerProduced();
